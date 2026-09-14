@@ -1,0 +1,26 @@
+---
+import { formatDate } from '../lib/posts';
+
+interface Props {
+  date: Date;
+  category?: string;
+  categoryHref?: string;
+}
+
+const { date, category, categoryHref } = Astro.props;
+---
+
+<div class="post-meta">
+  <span>Last Updated On&nbsp;</span>
+  <time datetime={date.toISOString()}>{formatDate(date)}</time>
+  {
+    category && (
+      <>
+        <span>&nbsp;in&nbsp;</span>
+        {categoryHref ? <a href={categoryHref}>{category}</a> : <span>{category}</span>}
+      </>
+    )
+  }
+  <span>&nbsp;by&nbsp;</span>
+  <span>Jan</span>
+</div>

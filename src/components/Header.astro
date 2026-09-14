@@ -1,0 +1,31 @@
+---
+import { SITE } from '../lib/site';
+
+const path = Astro.url.pathname;
+---
+
+<header class="site-header">
+  <div class="site-header__inner wide">
+    <a class="site-logo" href="/" aria-label={SITE.title}>
+      <img src={SITE.logo} alt={SITE.title} width="300" height="109" />
+    </a>
+    <nav class="site-nav" aria-label="Main menu">
+      <ul>
+        {
+          SITE.categories.map((category) => (
+            <li>
+              <a
+                href={`/category/${category.slug}/`}
+                aria-current={
+                  path.startsWith(`/category/${category.slug}/`) ? 'page' : undefined
+                }
+              >
+                {category.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </div>
+</header>

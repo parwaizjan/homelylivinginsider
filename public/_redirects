@@ -1,0 +1,24 @@
+# Preserve legacy WordPress URLs on Cloudflare Pages
+# 200 = rewrite (serve content at the original URL), 301 = permanent redirect
+
+# Feeds
+/feed/ /feed.xml 200
+/comments/feed/ /feed.xml 200
+
+# Sitemaps (Yoast -> Astro sitemap)
+/sitemap_index.xml /sitemap-index.xml 200
+/sitemap.xml /sitemap-index.xml 200
+/post-sitemap.xml /sitemap-index.xml 301
+/page-sitemap.xml /sitemap-index.xml 301
+/category-sitemap.xml /sitemap-index.xml 301
+/author-sitemap.xml /sitemap-index.xml 301
+
+# Removed contact page
+/contact/ / 301
+
+# WordPress admin / API surface
+/wp-login.php / 301
+/wp-admin/* / 301
+/wp-json/* / 301
+/xmlrpc.php / 301
+/wp-cron.php / 301

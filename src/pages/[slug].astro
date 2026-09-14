@@ -1,0 +1,126 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostMeta from '../components/PostMeta.astro';
+import { getSortedPosts, categorySlug } from '../lib/posts';
+import { SITE } from '../lib/site';
+import { articleSchema, breadcrumbSchema, websiteSchema } from '../lib/schema';
+
+export async function getStaticPaths() {
+  const posts = await getSortedPosts();
+  const pages = await getCollection('pages');
+
+  const postPaths = posts.map((entry, index) => ({
+    params: { slug: entry.id },
+    props: {
+      kind: 'post' as const,
+      entry,
+      prev: posts[index + 1] ?? null,
+      next: posts[index - 1] ?? null,
+    },
+  }));
+
+  const pagePaths = pages.map((entry) => ({
+    params: { slug: entry.id },
+    props: { kind: 'page' as const, entry, prev: null, next: null },
+  }));
+
+  return [...postPaths, ...pagePaths];
+}
+
+const { kind, entry, prev, next } = Astro.props;
+const { Content } = await render(entry);
+const data = entry.data as {
+  title: string;
+  description?: string;
+  date?: Date;
+  updated?: Date;
+  category?: string;
+  featuredImage?: string;
+  featuredImageAlt?: string;
+  seoTitle?: string;
+  canonical?: string;
+};
+const title = data.seoTitle || data.title;
+---
+
+{
+  kind === 'post' ? (
+    <BaseLayout
+      title={`${title} - ${SITE.title}`}
+      description={data.description}
+      canonical={data.canonical}
+      image={data.featuredImage}
+      type="article"
+      publishedTime={data.date?.toISOString()}
+      modifiedTime={data.updated?.toISOString()}
+      jsonLd={[
+        articleSchema({
+          url: `${SITE.url}/${entry.id}/`,
+          title: data.title,
+          description: data.description,
+          image: data.featuredImage,
+          datePublished: data.date?.toISOString() ?? '',
+          dateModified: (data.updated ?? data.date)?.toISOString() ?? '',
+          category: data.category,
+        }),
+        breadcrumbSchema([
+          { name: SITE.title, url: `${SITE.url}/` },
+          ...(data.category
+            ? [{ name: data.category, url: `${SITE.url}/category/${categorySlug(data.category)}/` }]
+            : []),
+          { name: data.title, url: `${SITE.url}/${entry.id}/` },
+        ]),
+      ]}
+    >
+      <article class="entry">
+        {data.featuredImage && (
+          <figure class="entry__featured wide">
+            <img
+              src={data.featuredImage}
+              alt={data.featuredImageAlt ?? ''}
+              fetchpriority="high"
+              decoding="async"
+            />
+          </figure>
+        )}
+
+        <div class="entry__header">
+          <h1 class="entry__title">{data.title}</h1>
+          {data.date && (
+            <PostMeta
+              date={data.updated ?? data.date}
+              category={data.category}
+              categoryHref={data.category ? `/category/${categorySlug(data.category)}/` : undefined}
+            />
+          )}
+        </div>
+
+        <div class="entry-content">
+          <Content />
+        </div>
+
+        <nav class="post-nav container" aria-label="Post navigation">
+          {prev ? <a href={`/${prev.id}/`}>← Previous Post</a> : <span />}
+          {next ? <a href={`/${next.id}/`}>Next Post →</a> : <span />}
+        </nav>
+      </article>
+    </BaseLayout>
+  ) : (
+    <BaseLayout
+      title={`${title} - ${SITE.title}`}
+      description={data.description}
+      canonical={data.canonical}
+      jsonLd={websiteSchema()}
+    >
+      <div class="page-banner">
+        <div class="container">
+          <h1>{data.title}</h1>
+        </div>
+      </div>
+      <div class="entry-content page-content">
+        <Content />
+      </div>
+    </BaseLayout>
+  )
+}

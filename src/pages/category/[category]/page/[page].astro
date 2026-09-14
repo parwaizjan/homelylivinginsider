@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro';
+import PostCard from '../../../../components/PostCard.astro';
+import { getSortedPosts } from '../../../../lib/posts';
+import { SITE } from '../../../../lib/site';
+import { collectionPageSchema, breadcrumbSchema } from '../../../../lib/schema';
+
+export async function getStaticPaths() {
+  const PER_PAGE = 10;
+  const posts = await getSortedPosts();
+  const paths = [];
+
+  for (const category of SITE.categories) {
+    const items = posts.filter(
+      (p) =>
+        p.data.category === category.name ||
+        p.data.categories.includes(category.name),
+    );
+    const totalPages = Math.ceil(items.length / PER_PAGE);
+
+    for (let page = 2; page <= totalPages; page += 1) {
+      paths.push({
+        params: { category: category.slug, page: String(page) },
+        props: {
+          name: category.name,
+          slug: category.slug,
+          page,
+          items: items.slice((page - 1) * PER_PAGE, page * PER_PAGE),
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { name, slug, page, items } = Astro.props;
+const url = `${SITE.url}/category/${slug}/page/${page}/`;
+---
+
+<BaseLayout
+  title={`${name} Archives - Page ${page} - ${SITE.title}`}
+  jsonLd={[
+    collectionPageSchema(`${name} Archives`, url),
+    breadcrumbSchema([
+      { name: SITE.title, url: `${SITE.url}/` },
+      { name, url: `${SITE.url}/category/${slug}/` },
+      { name: `Page ${page}`, url },
+    ]),
+  ]}
+>
+  <h1 class="archive-title wide">{name}</h1>
+  <div class="post-grid wide archive">
+    {items.map((post) => <PostCard post={post} showDate showMore={false} />)}
+  </div>
+
+  <nav class="pagination wide" aria-label="Posts navigation">
+    <a href={page === 2 ? `/category/${slug}/` : `/category/${slug}/page/${page - 1}/`}>
+      ← Newer Posts
+    </a>
+    <span class="pagination__spacer" />
+  </nav>
+</BaseLayout>

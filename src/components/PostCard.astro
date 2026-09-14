@@ -1,0 +1,31 @@
+---
+import type { Post } from '../lib/posts';
+import { excerptFromBody, formatDate } from '../lib/posts';
+
+interface Props {
+  post: Post;
+  showDate?: boolean;
+  showMore?: boolean;
+}
+
+const { post, showDate = false, showMore = true } = Astro.props;
+const { title, featuredImage, featuredImageAlt, date } = post.data;
+const href = `/${post.id}/`;
+const excerpt = excerptFromBody(post.body);
+---
+
+<article class="post-card">
+  <a class="post-card__image" href={href} tabindex="-1" aria-hidden="true">
+    {featuredImage && <img src={featuredImage} alt={featuredImageAlt ?? ''} loading="lazy" decoding="async" />}
+  </a>
+  <h2 class="post-card__title"><a href={href}>{title}</a></h2>
+  <p class="post-card__excerpt">{excerpt}</p>
+  {showMore && <p class="post-card__more"><a href={href}>Read More</a></p>}
+  {
+    showDate && (
+      <span class="post-card__date">
+        <a href={href}>{formatDate(date)}</a>
+      </span>
+    )
+  }
+</article>

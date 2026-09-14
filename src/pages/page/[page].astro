@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getSortedPosts } from '../../lib/posts';
+import { SITE, POSTS_PER_PAGE } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const posts = await getSortedPosts();
+  const rest = posts.slice(1);
+  const totalPages = Math.ceil(rest.length / POSTS_PER_PAGE);
+
+  const paths = [];
+  for (let page = 2; page <= totalPages; page += 1) {
+    paths.push({
+      params: { page: String(page) },
+      props: {
+        page,
+        totalPages,
+        items: rest.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE),
+      },
+    });
+  }
+  return paths;
+}
+
+const { page, items } = Astro.props;
+---
+
+<BaseLayout
+  title={`${SITE.title} - ${SITE.tagline} - Page ${page}`}
+  description={SITE.tagline}
+  noindex={false}
+>
+  <section class="home-intro container">
+    <h1>{SITE.title}</h1>
+    <p>{SITE.tagline}</p>
+  </section>
+
+  <div class="wide">
+    <hr class="section-divider" />
+    <h2 class="section-heading">Latest Posts</h2>
+  </div>
+
+  <div class="post-grid wide">
+    {items.map((post) => <PostCard post={post} />)}
+  </div>
+
+  <nav class="pagination wide" aria-label="Posts navigation">
+    <a href={page === 2 ? '/' : `/page/${page - 1}/`}>← Newer Posts</a>
+    <span class="pagination__spacer" />
+  </nav>
+</BaseLayout>
