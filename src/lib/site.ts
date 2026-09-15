@@ -1,7 +1,7 @@
 export const SITE = {
   title: 'Homely Living Insider',
   tagline: 'Elevate your living space with expert tips and solutions.',
-  url: 'https://www.homelylivinginsider.com',
+  url: 'https://homelylivinginsider.com',
   author: 'Jan',
   language: 'en-US',
   logo: '/wp-content/uploads/2023/01/logo.svg',
